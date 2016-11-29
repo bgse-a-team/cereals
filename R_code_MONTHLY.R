@@ -1,5 +1,6 @@
 cereals <- read.csv("~/Desktop/PS 2/cereals.csv")
 sapply(cereals,class)
+## hola
 
 # Sells per company
 table(as.factor(cereals$firm_id))
