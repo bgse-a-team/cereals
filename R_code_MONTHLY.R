@@ -1,4 +1,4 @@
-cereals <- read.csv("~/Desktop/PS 2/cereals.csv")
+cereals <- read.csv("./cereals.csv")
 sapply(cereals,class)
 ## hola Dani
 
