@@ -1,6 +1,4 @@
 cereals <- read.csv("./cereals.csv")
-sapply(cereals,class)
-## hola Dani
 
 # Sells per company
 table(as.factor(cereals$firm_id))
@@ -56,6 +54,10 @@ rownames(exp) <- c("Calories","Total fat","Saturated fat","Sodium","Carbohydrate
                    "Vitamin A","Iron","Vitamin C","Calcium")
 round(exp,2)
 
+# Descriptive
+tapply(cereals$sale_c_mon,as.factor(cereals$manufacturername),mean)
+tapply(cereals$adultall,as.factor(cereals$manufacturername),mean)
+
 # Evolution consumption fat over time
 plot(tapply(cereals$totalfatg*cereals$nsize,as.factor(cereals$month),mean)/tapply(cereals$nsize,as.factor(cereals$month),mean))
 
@@ -104,6 +106,16 @@ abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
 
 # Demand models using cross-price elasticities
 
+  ## Variables that are correlated with price
+  # distance_factory (different value for each manufacturer). It never changes, right? So not necessary
+  # retailprofit_mon. Does profit affect prices? cor(cereals$retailprofit_mon,cereals$price_mon,use="complete")
+  # cereals$electricityprice_midwest (electricity price) plot(cereals$month,cereals$electricityprice_midwest)
+  # retailprofperquant_mon. cor(cereals$retailprofperquant_mon,cereals$price_mon,use="complete")
+  # distance_gasoline
+  # barley_price_us, wheat_price_us, rice_price_us, corn_price_us, oats_price_us
+  cereals$cost_inputs <- apply(cereals[,c("barley_g_price","sugar_g_price","wheat_g_price","rice_g_price","corn_g_price","oat_g_price")],1,sum,na.rm=T)
+  IV_price <- lm(price_mon ~ distance_gasoline + cost_inputs + earnings_tradetransport + retailprofperquant_mon + price_instru_zone, data = cereals)
+
   ## Use price per onze
   cereals$price_oz <- cereals$price_mon/cereals$nsize
   
@@ -119,16 +131,12 @@ abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
   demand_data <- cbind(tmp,tmp2)
   demand_data <- as.data.frame(demand_data)
   colnames(demand_data) <- make.names(colnames(demand_data), unique=TRUE)
+
+  # Demand curve
+  ## Income per month
+  demand_data$income_mon <- tapply(cereals$income,cereals$month,mean,na.rm=T) # It is constant
   
-  ## Variables that are correlated with price
-      # distance_factory (different value for each manufacturer). I never changes, right? So not necessary
-      # retailprofit_mon. Does profit affect prices? cor(cereals$retailprofit_mon,cereals$price_mon,use="complete")
-      # cereals$electricityprice_midwest (electricity price) plot(cereals$month,cereals$electricityprice_midwest)
-      # retailprofperquant_mon. cor(cereals$retailprofperquant_mon,cereals$price_mon,use="complete")
-      # distance_gasoline
-      # barley_price_us, wheat_price_us, rice_price_us, corn_price_us, oats_price_us
-  IV_price <- lm(price_mon ~ distance_gasoline + barley_g_price + wheat_g_price + rice_g_price +
-                   corn_g_price + oat_g_price + retailprofperquant_mon, data = cereals)
+  ## Calories
   model_Dominicks <- lm(log(Dominicks_price)~log(Dominicks_qty)+log(Kelloggs_price)+log(General.Mills_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
   summary(model_Dominicks)
   model_Dominicks <- lm(log(General.Mills_price)~log(General.Mills_qty)+log(Kelloggs_price)+log(Dominicks_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
