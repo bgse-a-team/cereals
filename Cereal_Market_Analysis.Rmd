@@ -6,15 +6,15 @@ output: pdf_document
 ---
 
 # Introduction
-This reports provides an analysis of the ready-to-eat cereal market in the USA. In the used data set each observation corresponds to a specific product (there are a total of 82) for each month and store. Therefore, for each row of the data set we know how many products were sold in a specific month and store. Given the large amount of total products and the great similarities among some of them, our team has decided to perfom the analysis by manufacturer. There are a total of seven manufacturers which are: Dominicks, General Mills, Kelloggs, Kraft, Nabisco/Kraft, Quaker Oats and Ralston. Alternatve analysis could have been followed, for example, by brand name. However, our team has special interest in understanding the competitive situation among main manufacturers and see how their demand curves look like.
+This reports provides an analysis of the ready-to-eat cereal market in the USA. In the used data set each observation corresponds to a specific product (there are a total of 82 products across 7 manufacturers) for each month and store. Therefore, for each row of the data set we know how many products were sold in a specific month and store. Given the large amount of total products and the great similarities among some of them, our team has decided to perform the analysis by manufacturer. There are a total of seven manufacturers which are: Dominicks, General Mills, Kelloggs, Kraft, Nabisco/Kraft, Quaker Oats and Ralston. Alternate analysis could have been followed, for example, by brand name. However, our team has special interest in understanding the competitive situation among main manufacturers and see how their demand curves look like.
 
-We start this report with some descriptive analysis about the cereal market where variables are grouped by manufacturer as explained bofore. Once, some insight about the cereal market has been gained we proceed to study the demand curves of each manufacturer. In the study of demand curves, we use multiplicative demand models and instrumental variables to deal with endogeneity problems. The reason why we rely on instrumntal variables in this analysis is because when estimating the demand of a given manufacturer, variables such as price of inputs might affect the price and not quantity demanded. Therefore, it does not make sense to include such predictor in the demand model. However, cost of inputs (among other variables) can be used to predict the price of a manufacturer and, therefore, remove the correlation between price and the error term. This procedure is called, Two Stage Least Squares, and allows us to estimate demand models with as little bias as possible.
+We start this report with some descriptive analysis about the cereal market where variables are grouped by manufacturer as explained before. Once, some insight about the cereal market has been gained we proceed to study the demand curves of each manufacturer. In the study of demand curves, we use multiplicative demand models and instrumental variables to deal with endogeneity problems. The reason why we rely on instrumental variables in this analysis is because when estimating the demand of a given manufacturer, variables such as price of inputs might affect the price and not quantity demanded. Therefore, it does not make sense to include such predictor in the demand model. However, cost of inputs (among other variables) can be used to predict the price of a manufacturer and, therefore, remove the correlation between price and the error term. This procedure is called, Two Stage Least Squares, and allows us to estimate demand models with as little bias as possible.
 
 # Descriptive statistics
 To get an overview of the market, here we display the market share (in percentage) and the mean price (over all products) of each of the seven manufacturers.
 
 ```{r echo=F, comment=""}
-load("~/Desktop/Cereals.RData")
+cereals <- read.csv("./cereals.csv")
 cereals <- cereals[cereals[,"month"] != 0,]
 x <- as.data.frame(matrix(round(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T)/sum(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T))*100,1),nrow=1))
 colnames(x) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
@@ -25,9 +25,9 @@ rownames(y) <- "Mean Price"
 rbind(x,y)
 ```
 
-Note that the position of Kelloggs in the cereal market is outstanding given that almost half of the marked share belongs to it. General Mills follows Kelloggs with a market share of 26.2% and the rest of manufacturers have market shares smaller than 10%. With respect to the mean price, Raltson and General Mills have both the highest and mean price. On the other hand, Dominicks seems to be on average the cheapest manufacturer of the cereal market.
+Note that the position of Kelloggs in the cereal market is outstanding given that almost half of the marked share belongs to it. General Mills follows Kelloggs with a market share of 26.2% and the rest of manufacturers have market shares smaller than 10%. With respect to the mean price, Ralston and General Mills have both the highest and mean price. On the other hand, Dominicks seems to be on average the cheapest manufacturer of the cereal market.
 
-The following plot displays the quantity solds per manufacturer over time.
+The following plot displays the quantity sold per manufacturer over time.
 
 ```{r echo=F,fig.height=7}
 x <- tapply(cereals$quant_mon,list(cereals$month,cereals$manufacturername),sum,na.rm=T)
@@ -38,27 +38,27 @@ lines(1:74,x[,"Kraft"],type="l",col="green")
 lines(1:74,x[,"Nabisco / Kraft"],type="l",col="brown")
 lines(1:74,x[,"Ralston"],type="l",col="orange")
 lines(1:74,x[,"Quaker Oats"],type="l",col="pink")
-legend("topleft",levels(cereals$manufacturername),col=c("red","blue","black","green","brown","pink","brown"),lty=rep(1,7),bty="n")
+legend("topleft",levels(cereals$manufacturername),col=c("black","red","blue","green","brown","orange","pink"),lty=rep(1,7),bty="n")
 ```
 
-Note that there seems to be no specific trend over time. However, what can be inferred from this plot is the Kellogs and General Mills have the highest market share and that their demands changes accordingly most part of the period. The evolution of average price per manufacturer over time is displayed in the next plot.
+Note that there seems to be no specific trend over time. However, what can be inferred from this plot is the Kelloggs and General Mills have the highest market share and that their demands changes accordingly most part of the period. The evolution of average price per manufacturer over time is displayed in the next plot.
 
 ```{r echo=F,fig.height=7}
 cereals$price_oz <- cereals$price_mon/cereals$nsize
 x <- tapply(cereals$price_oz,list(cereals$month,cereals$manufacturername),mean,na.rm=T)
-plot(1:74,x[,"Kelloggs"],type="l",xlab="Month",ylab="Price per Onze",main="Price per Onze per Manufacturer Over Time",ylim=c(0,0.03))
+plot(1:74,x[,"Kelloggs"],type="l",xlab="Month",ylab="Price per Ounce",main="Price per Ounce per Manufacturer Over Time",ylim=c(0,0.03))
 lines(1:74,x[,"Dominicks"],type="l",col="red")
 lines(1:74,x[,"General Mills"],type="l",col="blue")
 lines(1:74,x[,"Kraft"],type="l",col="green")
 lines(1:74,x[,"Nabisco / Kraft"],type="l",col="brown")
 lines(1:74,x[,"Ralston"],type="l",col="orange")
 lines(1:74,x[,"Quaker Oats"],type="l",col="pink")
-legend("topleft",levels(cereals$manufacturername),col=c("red","blue","black","green","brown","pink","brown"),lty=rep(1,7),bty="n")
+legend("topleft",levels(cereals$manufacturername),col=c("black","red","blue","green","brown","orange","pink"),lty=rep(1,7),bty="n")
 ```
 
-We can inferr that Quacker Oats is the most expensive company and well as General Mills, which we already found out before. But in this graph we can see that the variability in price is much larger fo Quaker oats. On the other hand, the strongest manufacturer, Kelloggs, is the one that has less price variablity.
+We can infer that Quaker Oats is the most expensive company and well as General Mills, which we already found out before. But in this graph we can see that the variability in price is much larger for Quaker oats. On the other hand, the strongest manufacturer, Kelloggs, is the one that has less price variability.
 
-Some descriptive data about the nultritional fact for each manufacturer can be found in the following table:
+Some descriptive data about the nutritional fact for each manufacturer can be found in the following table:
 
 ```{r echo=F,comment=""}
 exp <- rbind(tapply(cereals$caloriesserving,as.factor(cereals$manufacturername),mean),
@@ -79,9 +79,9 @@ colnames(exp) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Ralt
 round(exp,1)
 ```
 
-From the previous tble it can be concluded that the manufacturer with the worst nutritional fact is Quaker Oats given that much more fat, calories and sugar than the rest of manufacturers.
+From the previous table it can be concluded that the manufacturer with the worst nutritional fact is Quaker Oats given that much more fat, calories and sugar than the rest of manufacturers.
 
-The follwoing table displays the mean content of each manufacturer mean product in terms of % of
+The following table displays the mean content of each manufacturer mean product in terms of % of
 
 ```{r echo=F,comment=""}
 exp <- rbind(tapply(cereals$cornweight,as.factor(cereals$manufacturername),mean),
@@ -96,7 +96,7 @@ round(exp*100,0)
 
 We see that some companies do not use at all some of these products.
 
-The following table shows the average number of cupons per manufactuer.
+The following table shows the average number of coupons per manufacturer.
 
 ```{r echo=F,comment=""}
 y <- as.data.frame(matrix(round(tapply(cereals$sale_c_mon,as.factor(cereals$manufacturername),mean)*100,1),nrow=1))
@@ -116,10 +116,10 @@ rownames(y) <- "% Adult cereal"
 y
 ```
 
-Very interestingly, we see that some manufacturer make their prodct for specific parts of the population. N/K only produce cereals for adults. On the other hand, Ralston only produces cereals for children. The most important player, Kelloggs, devotes 22.2% of their products to adults.
+Very interestingly, we see that some manufacturer make their product for specific parts of the population. N/K only produce cereals for adults. On the other hand, Ralston only produces cereals for children. The most important player, Kelloggs, devotes 22.2% of their products to adults.
 
 # Demand Estimation
-To get an inmediate overview of how each manufacturer's demand behaves with respect to the whole cereal market demand, we have built the following plot, where price is plot against quanitity in logarithms for each manufacturer. The red curve is the estimated demand for a specific manufacturer where the only predictor is its own price, and the blue curve is the demand of the whole market, using all manufacturers.
+To get an immediate overview of how each manufacturer's demand behaves with respect to the whole cereal market demand, we have built the following plot, where price is plot against quantity in logarithms for each manufacturer. The red curve is the estimated demand for a specific manufacturer where the only predictor is its own price, and the blue curve is the demand of the whole market, using all manufacturers.
 
 ```{r echo=F, fig.height=10}
 cereals <- cereals[which(cereals[,"quant_mon"] != 0),]
@@ -161,16 +161,16 @@ abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
 abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
 ```
 
-The demand of the manufacturers Dominicks, Kelloggs, Kraft and Quaker oats are clearly more inelastic than the overall demand of cereals (red line is more steep than blue line). However, as explained before, these demands only use the price of each manufacturer as predictor. Therefore, cross-price elasticities are not computed here which could lead to a change of the slope of the red lines. However, the the previous plot provides a quick overview of how the market behaves. With respect to the companies Generall Mills, N/K and Ralston, it looks like their price elasticities are very similar to the elasticiteis of the whole market (simlar slopes of the red and blue lines).
+The demand of the manufacturers Dominicks, Kelloggs, Kraft and Quaker oats are clearly more inelastic than the overall demand of cereals (red line is more steep than blue line). However, as explained before, these demands only use the price of each manufacturer as predictor. Therefore, cross-price elasticities are not computed here which could lead to a change of the slope of the red lines. However, the the previous plot provides a quick overview of how the market behaves. With respect to the companies General Mills, N/K and Ralston, it looks like their price elasticities are very similar to the elasticities of the whole market (similar slopes of the red and blue lines).
 
 ## Instrumental variables
 As explained in the introduction, in this report we use instrumental variables for predicting the price of each manufacturer in order to account for endogeneity factors. Given that a good instrument requires a non-zero correlation between the instrument and the price variables, in order to choose proper instruments we started studying these types of correlations. The chosen instruments are:
 \begin{itemize}
 \item Cost of inputs: the inputs of the cereals taken into account are barley, wheat, sugar, corn, rice and oat. For a given observation (product) we computed the sum of the expenditure per 100g of each of these inputs. Hence, we obtain an overall variable that contains most of the cost of inputs.
-\item Cost of gasoline when transporting: again, the cost of transportation should affect the price but not the quanitity (at least directly). We use the cost of gasoline from the factory to the retailer.
-\item Cost of salaries of transportation: this basically refers to the fact that the higher the salaries the higher the cost of transportantion and, therefore, the higher prices.
-\item Margin per sold product: it has a very strong prositive correlation with price, which makes a good instrument.
-\item Average price in all zones: this is the most important instrument given that the correlation with price is expremelly high and positive. This variable account for the fact that prices among areas are not equal. Here we make the assumption that if an area is generally more expensive from another are, then individuals to not move to the cheapest area to buy their products. This assumption is necessary given that if it does not hold then it would affect quantity demanded as well as price.
+\item Cost of gasoline when transporting: again, the cost of transportation should affect the price but not the quantity (at least directly). We use the cost of gasoline from the factory to the retailer.
+\item Cost of salaries of transportation: this basically refers to the fact that the higher the salaries the higher the cost of transportation and, therefore, the higher prices.
+\item Margin per sold product: it has a very strong positive correlation with price, which makes a good instrument.
+\item Average price in all zones: this is the most important instrument given that the correlation with price is extremely high and positive. This variable account for the fact that prices among areas are not equal. Here we make the assumption that if an area is generally more expensive from another are, then individuals to not move to the cheapest area to buy their products. This assumption is necessary given that if it does not hold then it would affect quantity demanded as well as price.
 \end{itemize}
 
 The output of the regression is:
@@ -184,10 +184,10 @@ cereals$predicted_price <- predict(IV_price)
 
 Note that all variables are statistically significant at a 0.05 levels of significance. However, the effect of cost of gasoline when transporting, the effect of cost of inputs and the effect of cost of salaries of transportation is very close to zero. The only instruments that seem to have a significant effect of price are average price in all zones and margin per sold product.
 
-So far, we have performed the first step of the Two Step Least Squares Procedure. The next step is to predict the price variable using the model above and use this predicted variable to fit the demand curves. The following subsection containg the demand results for each company:
+So far, we have performed the first step of the Two Step Least Squares Procedure. The next step is to predict the price variable using the model above and use this predicted variable to fit the demand curves. The following subsection contains the demand results for each company:
 
 ## Demands for Each Manufacturer
-When estimating the demands for each manufacturer we used the estimated price using the instrumental variables. Once the price variable is predicted we computed the mean price per manufacturer and month and use these data to estimate the demands. The variable quantity was also grouped by manufacturer and month and use it as dependent variable. It is very important to note that we do not use other exogeneous variables in our model because the most significant one do not change over time. For example, it makes sense to think that income and percentage of population below 9 years old affect the quantity demanded but the following plot displays the changes of income over time.
+When estimating the demands for each manufacturer we used the estimated price using the instrumental variables. Once the price variable is predicted we computed the mean price per manufacturer and month and use these data to estimate the demands. The variable quantity was also grouped by manufacturer and month and use it as dependent variable. It is very important to note that we do not use other exogenous variables in our model because the most significant one do not change over time. For example, it makes sense to think that income and percentage of population below 9 years old affect the quantity demanded but the following plot displays the changes of income over time.
 
 ```{r echo=F}
 par(mfrow=c(1,2))
@@ -195,9 +195,9 @@ plot(1:74,tapply(cereals$income,cereals$month,mean,na.rm=T),xlab="Month",ylab="I
 plot(1:74,tapply(cereals$age9,cereals$month,mean,na.rm=T),xlab="Month",ylab="% Population below 9",main="% Population Below 9 Over Time",pch=20)
 ```
 
-Note that almost no change is happening over time, which means that adding this variable as predictor would mean to basically add a constant. The same phenomenon occurs when using other potential exogeneous variables.
+Note that almost no change is happening over time, which means that adding this variable as predictor would mean to basically add a constant. The same phenomenon occurs when using other potential exogenous variables.
 
-The follwoing subsections show the estimated demand of each manufacturer where each coefficient can be interpreted as cross-price elasticities. Note that all the effects of changes in prices of all manufacturer on the quantity demanded of a given one are non-statistically significant at a 0.05 level of significance. This basically means that we did not find statistical evidence that when a manufacturer changes its prices there is no effect on the quantity demanded of other manufacturers. Of course, there is statistical evidence that at a 0.05 level of significance the changes in prices of a given manufacturer affects its demanded quantity, and these relationship is negative in all cases.
+The following subsections show the estimated demand of each manufacturer where each coefficient can be interpreted as cross-price elasticities. Note that all the effects of changes in prices of all manufacturer on the quantity demanded of a given one are non-statistically significant at a 0.05 level of significance. This basically means that we did not find statistical evidence that when a manufacturer changes its prices there is no effect on the quantity demanded of other manufacturers. Of course, there is statistical evidence that at a 0.05 level of significance the changes in prices of a given manufacturer affects its demanded quantity, and these relationship is negative in all cases.
 
 ### Dominicks
 ```{r echo=F, comment=""}
