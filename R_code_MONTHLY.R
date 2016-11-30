@@ -1,15 +1,18 @@
 cereals <- read.csv("./cereals.csv")
 
-# Sells per company
-table(as.factor(cereals$firm_id))
-plot(as.factor(cereals$firm_id))
-
-# Sells per store
-table(as.factor(cereals$store))
-plot(as.factor(cereals$store))
+# Sells per company (market share)
+round(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T)/sum(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T))*100,1)
 
 # When do companies sell their products
-plot(as.factor(cereals$firm_id),cereals$mon)
+x <- tapply(cereals$quant_mon,list(cereals$mon,cereals$manufacturername),sum,na.rm=T)
+plot(1:75,x[,"Kelloggs"],type="l",xlab="Month",ylab="Sells",main="Sells Per Manufacturer Over Time")
+lines(1:75,x[,"Dominicks"],type="l",col="red")
+lines(1:75,x[,"General Mills"],type="l",col="blue")
+lines(1:75,x[,"Kraft"],type="l",col="green")
+lines(1:75,x[,"Nabisco / Kraft"],type="l",col="brown")
+lines(1:75,x[,"Ralston"],type="l",col="orange")
+lines(1:75,x[,"Quaker Oats"],type="l",col="pink")
+legend(40,3000000,levels(cereals$manufacturername),col=c("red","blue","black","green","brown","pink","brown"),lty=rep(1,7),bty="n")
 
 # Sells per store and and firm_id (given the company, the sells per store are exactly the same)
 plot(as.factor(cereals$store),as.factor(cereals$firm_id),ylab="Company",xlab="store")
@@ -139,8 +142,8 @@ abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
   ## Calories
   model_Dominicks <- lm(log(Dominicks_price)~log(Dominicks_qty)+log(Kelloggs_price)+log(General.Mills_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
   summary(model_Dominicks)
-  model_Dominicks <- lm(log(General.Mills_price)~log(General.Mills_qty)+log(Kelloggs_price)+log(Dominicks_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
-  summary(model_Dominicks)
+  model_General.Mills <- lm(log(General.Mills_price)~log(General.Mills_qty)+log(Kelloggs_price)+log(Dominicks_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+  summary(model_General.Mills)
   model_Kelloggs <- lm(log(Kelloggs_price)~log(Kelloggs_qty)+log(Dominicks_price)+log(General.Mills_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
   summary(model_Kelloggs)
   model_Kraft <- lm(log(Kraft_price)~log(Kraft_qty)+log(Dominicks_price)+log(General.Mills_price)+log(Kelloggs_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
