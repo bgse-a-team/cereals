@@ -15,6 +15,7 @@ To get an overview of the market, here we display the market share (in percentag
 
 ```{r echo=F, comment=""}
 load("~/Desktop/Cereals.RData")
+cereals <- cereals[cereals[,"month"] != 0,]
 x <- as.data.frame(matrix(round(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T)/sum(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T))*100,1),nrow=1))
 colnames(x) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
 rownames(x) <- "Market Share"
@@ -24,7 +25,245 @@ rownames(y) <- "Mean Price"
 rbind(x,y)
 ```
 
-Note that the position of Kelloggs in the cereal market is outstanding given that almost half of the marked share belongs to it. General Mills follogs Kelloggs with a market share of 26.9% and the rest of manufacturers have market shares smaller than 10%. With respect to the mean price, Raltson and General Mills have both the highest and mean price. On the other hand, Dominicks seems to be on average the cheapest manufacturer of the cereal market.
+Note that the position of Kelloggs in the cereal market is outstanding given that almost half of the marked share belongs to it. General Mills follows Kelloggs with a market share of 26.2% and the rest of manufacturers have market shares smaller than 10%. With respect to the mean price, Raltson and General Mills have both the highest and mean price. On the other hand, Dominicks seems to be on average the cheapest manufacturer of the cereal market.
+
+The following plot displays the quantity solds per manufacturer over time.
+
+```{r echo=F,fig.height=7}
+x <- tapply(cereals$quant_mon,list(cereals$month,cereals$manufacturername),sum,na.rm=T)
+plot(1:74,x[,"Kelloggs"],type="l",xlab="Month",ylab="Sales",main="Sales per Manufacturer Over Time",ylim=c(0,550000))
+lines(1:74,x[,"Dominicks"],type="l",col="red")
+lines(1:74,x[,"General Mills"],type="l",col="blue")
+lines(1:74,x[,"Kraft"],type="l",col="green")
+lines(1:74,x[,"Nabisco / Kraft"],type="l",col="brown")
+lines(1:74,x[,"Ralston"],type="l",col="orange")
+lines(1:74,x[,"Quaker Oats"],type="l",col="pink")
+legend("topleft",levels(cereals$manufacturername),col=c("red","blue","black","green","brown","pink","brown"),lty=rep(1,7),bty="n")
+```
+
+Note that there seems to be no specific trend over time. However, what can be inferred from this plot is the Kellogs and General Mills have the highest market share and that their demands changes accordingly most part of the period. The evolution of average price per manufacturer over time is displayed in the next plot.
+
+```{r echo=F,fig.height=7}
+cereals$price_oz <- cereals$price_mon/cereals$nsize
+x <- tapply(cereals$price_oz,list(cereals$month,cereals$manufacturername),mean,na.rm=T)
+plot(1:74,x[,"Kelloggs"],type="l",xlab="Month",ylab="Price per Onze",main="Price per Onze per Manufacturer Over Time",ylim=c(0,0.03))
+lines(1:74,x[,"Dominicks"],type="l",col="red")
+lines(1:74,x[,"General Mills"],type="l",col="blue")
+lines(1:74,x[,"Kraft"],type="l",col="green")
+lines(1:74,x[,"Nabisco / Kraft"],type="l",col="brown")
+lines(1:74,x[,"Ralston"],type="l",col="orange")
+lines(1:74,x[,"Quaker Oats"],type="l",col="pink")
+legend("topleft",levels(cereals$manufacturername),col=c("red","blue","black","green","brown","pink","brown"),lty=rep(1,7),bty="n")
+```
+
+We can inferr that Quacker Oats is the most expensive company and well as General Mills, which we already found out before. But in this graph we can see that the variability in price is much larger fo Quaker oats. On the other hand, the strongest manufacturer, Kelloggs, is the one that has less price variablity.
+
+Some descriptive data about the nultritional fact for each manufacturer can be found in the following table:
+
+```{r echo=F,comment=""}
+exp <- rbind(tapply(cereals$caloriesserving,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$totalfatg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$saturatedfatg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$sodiummg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$totalcarbohydratesg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$dietaryfiberg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$sugarsg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$proteing,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$vitaminamg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$ironmg,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$vitaminciu,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$calciummg,as.factor(cereals$manufacturername),mean))
+rownames(exp) <- c("Calories","Total fat","Saturated fat","Sodium","Carbohydrates","Fiber","Sugar","Protein",
+                   "Vitamin A","Iron","Vitamin C","Calcium")
+colnames(exp) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+round(exp,1)
+```
+
+From the previous tble it can be concluded that the manufacturer with the worst nutritional fact is Quaker Oats given that much more fat, calories and sugar than the rest of manufacturers.
+
+The follwoing table displays the mean content of each manufacturer mean product in terms of % of
+
+```{r echo=F,comment=""}
+exp <- rbind(tapply(cereals$cornweight,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$wheatweight,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$riceweight,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$oatweight,as.factor(cereals$manufacturername),mean),
+             tapply(cereals$barleyweight,as.factor(cereals$manufacturername),mean))
+rownames(exp) <- c("% Corn","% Wheat","% Rice","% Oat","% Barley")
+colnames(exp) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+round(exp*100,0)
+```
+
+We see that some companies do not use at all some of these products.
+
+The following table shows the average number of cupons per manufactuer.
+
+```{r echo=F,comment=""}
+y <- as.data.frame(matrix(round(tapply(cereals$sale_c_mon,as.factor(cereals$manufacturername),mean)*100,1),nrow=1))
+colnames(y) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+rownames(y) <- "Mean Coupons"
+y
+```
+
+Hence, we see that companies such as Dominicks and N/K do not provide discounts in their products. On the other hand, General Mills and Kraft are the companies that provide more discounts.
+
+The last descriptive table shows the percentage of adult cereals for each manufacturer:
+
+```{r echo=F,comment=""}
+y <- as.data.frame(matrix(round(tapply(cereals$adultall,as.factor(cereals$manufacturername),mean)*100,1),nrow=1))
+colnames(y) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+rownames(y) <- "% Adult cereal"
+y
+```
+
+Very interestingly, we see that some manufacturer make their prodct for specific parts of the population. N/K only produce cereals for adults. On the other hand, Ralston only produces cereals for children. The most important player, Kelloggs, devotes 22.2% of their products to adults.
+
+# Demand Estimation
+To get an inmediate overview of how each manufacturer's demand behaves with respect to the whole cereal market demand, we have built the following plot, where price is plot against quanitity in logarithms for each manufacturer. The red curve is the estimated demand for a specific manufacturer where the only predictor is its own price, and the blue curve is the demand of the whole market, using all manufacturers.
+
+```{r echo=F, fig.height=10}
+cereals <- cereals[which(cereals[,"quant_mon"] != 0),]
+par(mfrow=c(4,2))
+# Dominicks
+idx <- cereals[,"manufacturername"] == "Dominicks"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Dominicks",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# General Mills
+idx <- cereals[,"manufacturername"] == "General Mills"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="General Mills",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# Kelloggs
+idx <- cereals[,"manufacturername"] == "Kelloggs"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Kelloggs",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# Kraft
+idx <- cereals[,"manufacturername"] == "Kraft"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Kraft",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# Nabisco / Kraft
+idx <- cereals[,"manufacturername"] == "Nabisco / Kraft"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Nabisco / Kraft",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# Quaker Oats
+idx <- cereals[,"manufacturername"] == "Quaker Oats"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Quaker Oats",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+# Ralston
+idx <- cereals[,"manufacturername"] == "Ralston"
+plot(log(cereals$quant_mon[idx]),log(cereals$price_mon[idx]),cex=0.3,main="Ralston",xlab="Quantity (in logs)",ylab="Price (in logs)")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals[idx,]),col="red")
+abline(lm(log(price_mon) ~ log(quant_mon), data=cereals),col="blue")
+```
+
+The demand of the manufacturers Dominicks, Kelloggs, Kraft and Quaker oats are clearly more inelastic than the overall demand of cereals (red line is more steep than blue line). However, as explained before, these demands only use the price of each manufacturer as predictor. Therefore, cross-price elasticities are not computed here which could lead to a change of the slope of the red lines. However, the the previous plot provides a quick overview of how the market behaves. With respect to the companies Generall Mills, N/K and Ralston, it looks like their price elasticities are very similar to the elasticiteis of the whole market (simlar slopes of the red and blue lines).
+
+## Instrumental variables
+As explained in the introduction, in this report we use instrumental variables for predicting the price of each manufacturer in order to account for endogeneity factors. Given that a good instrument requires a non-zero correlation between the instrument and the price variables, in order to choose proper instruments we started studying these types of correlations. The chosen instruments are:
+\begin{itemize}
+\item Cost of inputs: the inputs of the cereals taken into account are barley, wheat, sugar, corn, rice and oat. For a given observation (product) we computed the sum of the expenditure per 100g of each of these inputs. Hence, we obtain an overall variable that contains most of the cost of inputs.
+\item Cost of gasoline when transporting: again, the cost of transportation should affect the price but not the quanitity (at least directly). We use the cost of gasoline from the factory to the retailer.
+\item Cost of salaries of transportation: this basically refers to the fact that the higher the salaries the higher the cost of transportantion and, therefore, the higher prices.
+\item Margin per sold product: it has a very strong prositive correlation with price, which makes a good instrument.
+\item Average price in all zones: this is the most important instrument given that the correlation with price is expremelly high and positive. This variable account for the fact that prices among areas are not equal. Here we make the assumption that if an area is generally more expensive from another are, then individuals to not move to the cheapest area to buy their products. This assumption is necessary given that if it does not hold then it would affect quantity demanded as well as price.
+\end{itemize}
+
+The output of the regression is:
+
+```{r echo=F,comment=""}
+cereals$cost_inputs <- apply(cereals[,c("barley_g_price","sugar_g_price","wheat_g_price","rice_g_price","corn_g_price","oat_g_price")],1,sum,na.rm=T)
+  IV_price <- lm(price_mon ~ distance_gasoline + cost_inputs + earnings_tradetransport + retailprofperquant_mon + price_instru_zone, data = cereals)
+summary(IV_price)
+cereals$predicted_price <- predict(IV_price)
+```
+
+Note that all variables are statistically significant at a 0.05 levels of significance. However, the effect of cost of gasoline when transporting, the effect of cost of inputs and the effect of cost of salaries of transportation is very close to zero. The only instruments that seem to have a significant effect of price are average price in all zones and margin per sold product.
+
+So far, we have performed the first step of the Two Step Least Squares Procedure. The next step is to predict the price variable using the model above and use this predicted variable to fit the demand curves. The following subsection containg the demand results for each company:
+
+## Demands for Each Manufacturer
+When estimating the demands for each manufacturer we used the estimated price using the instrumental variables. Once the price variable is predicted we computed the mean price per manufacturer and month and use these data to estimate the demands. The variable quantity was also grouped by manufacturer and month and use it as dependent variable. It is very important to note that we do not use other exogeneous variables in our model because the most significant one do not change over time. For example, it makes sense to think that income and percentage of population below 9 years old affect the quantity demanded but the following plot displays the changes of income over time.
+
+```{r echo=F}
+par(mfrow=c(1,2))
+plot(1:74,tapply(cereals$income,cereals$month,mean,na.rm=T),xlab="Month",ylab="Income",main="Income Over Time",pch=20)
+plot(1:74,tapply(cereals$age9,cereals$month,mean,na.rm=T),xlab="Month",ylab="% Population below 9",main="% Population Below 9 Over Time",pch=20)
+```
+
+Note that almost no change is happening over time, which means that adding this variable as predictor would mean to basically add a constant. The same phenomenon occurs when using other potential exogeneous variables.
+
+The follwoing subsections show the estimated demand of each manufacturer where each coefficient can be interpreted as cross-price elasticities. Note that all the effects of changes in prices of all manufacturer on the quantity demanded of a given one are non-statistically significant at a 0.05 level of significance. This basically means that we did not find statistical evidence that when a manufacturer changes its prices there is no effect on the quantity demanded of other manufacturers. Of course, there is statistical evidence that at a 0.05 level of significance the changes in prices of a given manufacturer affects its demanded quantity, and these relationship is negative in all cases.
+
+### Dominicks
+```{r echo=F, comment=""}
+cereals$price_oz <- cereals$predicted_price/cereals$nsize
+## Mean price per month and company
+tmp <- tapply(cereals$price_oz,list(cereals$month,cereals$manufacturername),mean,na.rm=T)
+## Mean quantity per month and company
+tmp2 <- tapply(cereals$quant_mon,list(cereals$month,cereals$manufacturername),mean,na.rm=T)
+## Demand data frame
+colnames(tmp2) <- paste0(colnames(tmp2),"_qty")
+colnames(tmp) <- paste0(colnames(tmp),"_price")
+demand_data <- cbind(tmp,tmp2)
+demand_data <- as.data.frame(demand_data)
+colnames(demand_data) <- make.names(colnames(demand_data), unique=TRUE)
+model_Dominicks <- lm(log(Dominicks_qty)~log(Dominicks_price)+log(Kelloggs_price)+log(General.Mills_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_Dominicks))[,c(1,4)],2)
+```
+
+### General Miller
+```{r echo=F, comment=""}
+model_General.Mills <- lm(log(General.Mills_qty)~log(General.Mills_price)+log(Kelloggs_price)+log(Dominicks_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_General.Mills))[,c(1,4)],2)
+```
+
+### Kelloggs
+```{r echo=F, comment=""}
+model_Kelloggs <- lm(log(Kelloggs_qty)~log(Kelloggs_price)+log(Dominicks_price)+log(General.Mills_price)+log(Kraft_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_Kelloggs))[,c(1,4)],2)
+```
+
+### Kraft
+```{r echo=F, comment=""}
+model_Kraft <- lm(log(Kraft_qty)~log(Kraft_price)+log(Dominicks_price)+log(General.Mills_price)+log(Kelloggs_price)+log(Nabisco...Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_Kraft))[,c(1,4)],2)
+```
+
+### N/K
+```{r echo=F, comment=""}
+model_Nabisco...Kraft <- lm(log(Nabisco...Kraft_qty)~log(Nabisco...Kraft_price)+log(Dominicks_price)+log(General.Mills_price)+log(Kelloggs_price)+log(Kraft_price)+log(Quaker.Oats_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_Nabisco...Kraft))[,c(1,4)],2)
+```
+
+### Quaker Oats
+```{r echo=F, comment=""}
+model_Quaker.Oats <- lm(log(Quaker.Oats_qty)~log(Quaker.Oats_price)+log(Dominicks_price)+log(General.Mills_price)+log(Kelloggs_price)+log(Kraft_price)+log(Nabisco...Kraft_price) + log(Ralston_price),data=demand_data)
+round(coef(summary(model_Quaker.Oats))[,c(1,4)],2)
+```
+
+### Ralston
+```{r echo=F, comment=""}
+model_Ralston <- lm(log(Ralston_qty)~log(Ralston_price)+log(Dominicks_price)+log(General.Mills_price)+log(Kelloggs_price)+log(Kraft_price)+log(Nabisco...Kraft_price) + log(Quaker.Oats_price),data=demand_data)
+round(coef(summary(model_Ralston))[,c(1,4)],2)
+```
+
+# Conclusion
+
+
+
+
+
+
+
+
+
+
+
 
 
 
