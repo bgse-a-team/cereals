@@ -1,0 +1,32 @@
+---
+title: "Cereal Market Analysis"
+author: "Daniel Bestard, Akhil Lohia, Michael Cameron"
+date: "November, 2016"
+output: pdf_document
+---
+
+# Introduction
+This reports provides an analysis of the ready-to-eat cereal market in the USA. In the used data set each observation corresponds to a specific product (there are a total of 82) for each month and store. Therefore, for each row of the data set we know how many products were sold in a specific month and store. Given the large amount of total products and the great similarities among some of them, our team has decided to perfom the analysis by manufacturer. There are a total of seven manufacturers which are: Dominicks, General Mills, Kelloggs, Kraft, Nabisco/Kraft, Quaker Oats and Ralston. Alternatve analysis could have been followed, for example, by brand name. However, our team has special interest in understanding the competitive situation among main manufacturers and see how their demand curves look like.
+
+We start this report with some descriptive analysis about the cereal market where variables are grouped by manufacturer as explained bofore. Once, some insight about the cereal market has been gained we proceed to study the demand curves of each manufacturer. In the study of demand curves, we use multiplicative demand models and instrumental variables to deal with endogeneity problems. The reason why we rely on instrumntal variables in this analysis is because when estimating the demand of a given manufacturer, variables such as price of inputs might affect the price and not quantity demanded. Therefore, it does not make sense to include such predictor in the demand model. However, cost of inputs (among other variables) can be used to predict the price of a manufacturer and, therefore, remove the correlation between price and the error term. This procedure is called, Two Stage Least Squares, and allows us to estimate demand models with as little bias as possible.
+
+# Descriptive statistics
+To get an overview of the market, here we display the market share (in percentage) and the mean price (over all products) of each of the seven manufacturers.
+
+```{r echo=F, comment=""}
+load("~/Desktop/Cereals.RData")
+x <- as.data.frame(matrix(round(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T)/sum(tapply(cereals$quant_mon,cereals$manufacturername,sum,na.rm=T))*100,1),nrow=1))
+colnames(x) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+rownames(x) <- "Market Share"
+y <- as.data.frame(matrix(round(tapply(cereals$price_mon,cereals$manufacturername,mean,na.rm=T)*100,1),nrow=1))
+colnames(y) <- c("Dominicks","G.Mills","Kelloggs","Kraft","N/K","Q.Oats","Raltson")
+rownames(y) <- "Mean Price"
+rbind(x,y)
+```
+
+Note that the position of Kelloggs in the cereal market is outstanding given that almost half of the marked share belongs to it. General Mills follogs Kelloggs with a market share of 26.9% and the rest of manufacturers have market shares smaller than 10%. With respect to the mean price, Raltson and General Mills have both the highest and mean price. On the other hand, Dominicks seems to be on average the cheapest manufacturer of the cereal market.
+
+
+
+
+
