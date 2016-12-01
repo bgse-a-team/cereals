@@ -190,7 +190,7 @@ Note that all variables are statistically significant at a 0.05 levels of signif
 So far, we have performed the first step of the Two Step Least Squares Procedure. The next step is to predict the price variable using the model above and use this predicted variable to fit the demand curves. The following subsection contains the demand results for each company:
 
 ## Demands for Each Manufacturer
-<<<<<<< HEAD
+
 When estimating the demands for each manufacturer we used the estimated price using the instrumental variables. Once the price variable is predicted we computed the mean price per manufacturer and month and use these data to estimate the demands. The variable quantity was also grouped by manufacturer and month and used as the dependent variable. It is very important to note that we do not use other exogenous variables in our model because the most significant ones do not change over time. For example, it makes sense to think that income and percentage of population below 9 years old will affect the quantity demanded but the following plot displays these changes over time.
 
 
